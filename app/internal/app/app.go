@@ -158,6 +158,7 @@ func run(c config.Config) {
 func App() {
 	var config config.Config
 	config.Read("/data/config.yml")
+	config.ReadEnv()
 
 	run(config)
 }

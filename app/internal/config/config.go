@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 
+	"github.com/kelseyhightower/envconfig"
 	"gopkg.in/yaml.v2"
 )
 
@@ -13,7 +14,7 @@ type Config struct {
 		Uri  string `yaml:"uri"`
 	} `yaml:"ifconfig"`
 	DigitalOcean struct {
-		Token string `yaml:"token"`
+		Token string `yaml:"token" envconfig:"DO_TOKEN"`
 	} `yaml:"digitalocean"`
 	Domains  []string `yaml:"domains"`
 	Interval int      `yaml:"interval"`
@@ -28,6 +29,13 @@ func (c *Config) Read(f string) {
 
 	decoder := yaml.NewDecoder(buf)
 	err = decoder.Decode(c)
+	if err != nil {
+		log.Fatalf(err.Error())
+	}
+}
+
+func (c *Config) ReadEnv() {
+	err := envconfig.Process("", c)
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
