@@ -2,7 +2,7 @@ version: "3"
 
 services:
   do-dyndns:
-    image: hellstromitltd/do-dyndns:v0.0.2
+    image: hellstromitltd/do-dyndns:v0.0.3
     container_name: do-dynds
     environment:
       - DO_TOKEN=<your digitalocean token>
