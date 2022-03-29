@@ -27,6 +27,7 @@ type Domain struct {
 	Type   string
 	Data   string
 	Update bool
+	Create bool
 }
 
 func createDoClient(c config.Config) *godo.Client {
@@ -92,12 +93,17 @@ func (d *Domains) checkRecords(client *godo.Client, ip PublicIP, c config.Config
 		if err != nil {
 			return err
 		}
-		for _, r := range record {
-			d.domains[i].ID = r.ID
-			if r.Data != ip.IP {
-				d.domains[i].Update = true
-			} else {
-				d.domains[i].Update = false
+
+		if len(record) == 0 {
+			d.domains[i].Create = true
+		} else {
+			for _, r := range record {
+				d.domains[i].ID = r.ID
+				if r.Data != ip.IP {
+					d.domains[i].Update = true
+				} else {
+					d.domains[i].Update = false
+				}
 			}
 		}
 	}
@@ -108,7 +114,7 @@ func (d *Domains) updateRecords(client *godo.Client, ip PublicIP) error {
 	ctx := context.TODO()
 	for _, domain := range d.domains {
 		if domain.Update {
-			log.Printf("Starting update of %s\n", domain.Name)
+			log.Printf("Starting update of record %s\n", domain.Name)
 			parent := getParentDomain(domain.Name)
 			editRequest := &godo.DomainRecordEditRequest{
 				Type: domain.Type,
@@ -118,10 +124,25 @@ func (d *Domains) updateRecords(client *godo.Client, ip PublicIP) error {
 
 			_, _, err := client.Domains.EditRecord(ctx, parent, domain.ID, editRequest)
 			if err != nil {
-				log.Println("Update failed!")
+				log.Printf("Update of record %s failed!", domain.Name)
 				return err
 			}
-			log.Printf("Update of %s completed!\n", domain.Name)
+			log.Printf("Update of record %s completed!\n", domain.Name)
+		} else if domain.Create {
+			log.Printf("Creating %s record \n", domain.Name)
+			parent := getParentDomain(domain.Name)
+			editRequest := &godo.DomainRecordEditRequest{
+				Type: domain.Type,
+				Name: strings.TrimSuffix(domain.Name, parent),
+				Data: ip.IP,
+			}
+
+			_, _, err := client.Domains.CreateRecord(ctx, parent, editRequest)
+			if err != nil {
+				log.Printf("Creation of record %s failed!", domain.Name)
+				return err
+			}
+			log.Printf("Creation of record %s completed!\n", domain.Name)
 		}
 	}
 	return nil
