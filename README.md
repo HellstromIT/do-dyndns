@@ -25,9 +25,9 @@ Create a digitalocean token at https://cloud.digitalocean.com/account/api/tokens
 In the example https://api.ipify.org/?format=json is used to query for the public IP but any service that gives a json response with the ip parameter should work.
 
 ## Preparing the DNS
-Currently the application requires that the A records have already been created. Add the A records at https://cloud.digitalocean.com/networking/domains before running the container/application. Failure to do this will not break anything but the application will just ignore updating the entry.
+Any missing A records will be automatically created by the application. Just make sure that the domain is setup in https://cloud.digitalocean.com/networking/domains
 
-This will probably change in the future and the application will create any missing A records.
+The application will ONLY update or create records that are defined in the config.yml. Other records that are manually added will be left alone.
 
 # Deploying
 
