@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "do-dyndns.fullname" . }}-config
+  labels:
+    {{- include "do-dyndns.labels" . | nindent 4 }}
+data:
+  configyml: |- {{ .Values.dyndns.configyml | nindent 4}}
