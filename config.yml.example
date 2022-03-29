@@ -1,0 +1,9 @@
+interval: 60
+ifconfig:
+  host: "https://api.ipify.org"
+  uri: "/?format=json"
+digitalocean:
+  token: <your digitalocean token>
+domains:
+  - "do-test.<yourdomain>.<tld>"
+  - "do-test2.<yourdomain>.<tld>"
