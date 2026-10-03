@@ -15,13 +15,13 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -o /go/
 FROM alpine
 LABEL org.opencontainers.image.authors="martin@hellstrom.it"
 
-RUN addgroup -S dyndns && adduser -S dyndns -G dyndns
+RUN addgroup -S -g 10001 dyndns && adduser -S -u 10001 dyndns -G dyndns
 
 COPY --from=builder /go/bin/do-dynds /go/bin/do-dyndns
 
 RUN chmod +x /go/bin/do-dyndns
 RUN chown -R dyndns:dyndns /go/bin/do-dyndns
 
-USER dyndns
+USER 10001
 
 ENTRYPOINT [ "/go/bin/do-dyndns" ]

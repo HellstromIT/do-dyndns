@@ -61,3 +61,14 @@ Create the name of the service account to use
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}
 {{- end }}
+
+{{/*
+Name of the secret holding the DigitalOcean token
+*/}}
+{{- define "do-dyndns.secretName" -}}
+{{- if .Values.digitalocean.existingSecret }}
+{{- .Values.digitalocean.existingSecret }}
+{{- else }}
+{{- include "do-dyndns.fullname" . }}
+{{- end }}
+{{- end }}

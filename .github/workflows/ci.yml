@@ -59,4 +59,4 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Lint charts
-        run: helm lint charts/*
+        run: helm lint charts/* --set digitalocean.token=dummy
