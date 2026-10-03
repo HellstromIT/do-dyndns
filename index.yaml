@@ -2,6 +2,16 @@ apiVersion: v1
 entries:
   do-dyndns:
   - apiVersion: v2
+    appVersion: v0.1.7
+    created: "2026-10-03T22:15:27.559215903Z"
+    description: A Helm chart for do-dynds
+    digest: afcd9027dc632454ab71c06e4513b00e9725f9cfa9cecc98dba5f11316b79e9b
+    name: do-dyndns
+    type: application
+    urls:
+    - https://github.com/HellstromIT/do-dyndns/releases/download/do-dyndns-0.2.2/do-dyndns-0.2.2.tgz
+    version: 0.2.2
+  - apiVersion: v2
     appVersion: v0.1.6
     created: "2026-10-03T20:45:28.98012555Z"
     description: A Helm chart for do-dynds
@@ -31,4 +41,4 @@ entries:
     urls:
     - https://github.com/HellstromIT/do-dyndns/releases/download/do-dyndns-0.1.2/do-dyndns-0.1.2.tgz
     version: 0.1.2
-generated: "2026-10-03T20:45:28.980140375Z"
+generated: "2026-10-03T22:15:27.559238996Z"
