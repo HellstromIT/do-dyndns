@@ -12,16 +12,11 @@ COPY app/ .
 WORKDIR $GOPATH/src/do-dyndns/app/cmd/do-dyndns/
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -a -installsuffix cgo -o /go/bin/do-dynds
 
-FROM alpine:3.24.2@sha256:294b683cb724975bec92580e1e685676bd4b50bda910ddb8c51d4cabeaec77e6
+FROM gcr.io/distroless/static-debian13:nonroot@sha256:e2e927ec666bae08560abb3c55d0659eceabb657f56b6782ab500a9fc7f555e3
 LABEL org.opencontainers.image.authors="martin@hellstrom.it"
 
-RUN addgroup -S -g 10001 dyndns && adduser -S -u 10001 dyndns -G dyndns
+COPY --from=builder --chmod=0755 /go/bin/do-dynds /go/bin/do-dyndns
 
-COPY --from=builder /go/bin/do-dynds /go/bin/do-dyndns
-
-RUN chmod +x /go/bin/do-dyndns
-RUN chown -R dyndns:dyndns /go/bin/do-dyndns
-
-USER 10001
+USER 10001:10001
 
 ENTRYPOINT [ "/go/bin/do-dyndns" ]
