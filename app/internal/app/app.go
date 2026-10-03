@@ -3,8 +3,10 @@ package dyndns
 import (
 	"context"
 	"encoding/json"
-	"io/ioutil"
+	"fmt"
+	"io"
 	"log"
+	"net"
 	"net/http"
 	"strings"
 	"time"
@@ -12,6 +14,9 @@ import (
 	"github.com/HellstromIT/do-dyndns/app/cmd/do-dyndns/internal/config"
 	"github.com/digitalocean/godo"
 )
+
+// maxIPResponseSize caps how much of the IP lookup response is read.
+const maxIPResponseSize = 4096
 
 type PublicIP struct {
 	IP string `json:"ip"`
@@ -37,7 +42,7 @@ func createDoClient(c config.Config) *godo.Client {
 func getPublicIP(c config.Config) (*PublicIP, error) {
 	var p *PublicIP
 	url := c.Ifconfig.Host + c.Ifconfig.Uri
-	client := &http.Client{}
+	client := &http.Client{Timeout: 30 * time.Second}
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
@@ -47,12 +52,13 @@ func getPublicIP(c config.Config) (*PublicIP, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 
-	if resp.Body != nil {
-		defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status from %s: %s", url, resp.Status)
 	}
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(io.LimitReader(resp.Body, maxIPResponseSize))
 	if err != nil {
 		return nil, err
 	}
@@ -61,6 +67,17 @@ func getPublicIP(c config.Config) (*PublicIP, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	if p == nil {
+		return nil, fmt.Errorf("empty response from %s", url)
+	}
+
+	// Only accept a valid IPv4 address since it is written to an A record.
+	ip := net.ParseIP(p.IP)
+	if ip == nil || ip.To4() == nil {
+		return nil, fmt.Errorf("invalid IPv4 address %q from %s", p.IP, url)
+	}
+	p.IP = ip.To4().String()
 
 	return p, nil
 }
@@ -149,13 +166,22 @@ func (d *Domains) updateRecords(client *godo.Client, ip PublicIP) error {
 }
 
 func run(c config.Config) {
-	log.Println("Starting Check!")
-	nextRun := time.Now().Truncate(time.Minute)
-	nextRun = nextRun.Add(time.Minute * time.Duration(c.Interval))
+	for {
+		log.Println("Starting Check!")
+		nextRun := time.Now().Truncate(time.Minute)
+		nextRun = nextRun.Add(time.Minute * time.Duration(c.Interval))
 
+		check(c)
+
+		time.Sleep(time.Until(nextRun))
+	}
+}
+
+func check(c config.Config) {
 	publicIP, err := getPublicIP(c)
 	if err != nil {
-		log.Printf("Error getting public IP\n %v", err)
+		log.Printf("Error getting public IP, skipping update\n %v", err)
+		return
 	}
 
 	client := createDoClient(c)
@@ -164,16 +190,13 @@ func run(c config.Config) {
 	err = domain.checkRecords(client, *publicIP, c)
 	if err != nil {
 		log.Println(err)
+		return
 	}
 
 	err = domain.updateRecords(client, *publicIP)
 	if err != nil {
 		log.Println(err)
 	}
-
-	time.Sleep(time.Until(nextRun))
-
-	run(c)
 }
 
 func App() {

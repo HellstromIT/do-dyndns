@@ -23,13 +23,17 @@ spec:
         {{- toYaml . | nindent 8 }}
       {{- end }}
       serviceAccountName: {{ include "do-dyndns.serviceAccountName" . }}
+      automountServiceAccountToken: {{ .Values.serviceAccount.automount }}
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
         - name: {{ .Chart.Name }}
           env:
           - name: DO_TOKEN
-            value: {{ .Values.digitalocean.token }}
+            valueFrom:
+              secretKeyRef:
+                name: {{ include "do-dyndns.secretName" . }}
+                key: {{ .Values.digitalocean.existingSecretKey | default "token" }}
           securityContext:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
@@ -39,6 +43,7 @@ spec:
           volumeMounts:
           - name: config
             mountPath: /data
+            readOnly: true
       volumes:
         - name: config
           configMap:

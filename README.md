@@ -16,7 +16,7 @@ Exposing applications to the internet in an environment where you don't have a s
 
 Check the `config.yml.example` file for an example configuration.
 
-Create a digitalocean token at https://cloud.digitalocean.com/account/api/tokens and make sure it has **Write** permission. Optionally set an expiration, I'd suggest doing it but keep in mind that when the expiry date is reached you'll need to create a new token and update your configuration.
+Create a digitalocean token at https://cloud.digitalocean.com/account/api/tokens. Use **Custom Scopes** and grant only `domain` read, create and update, rather than a full-access token. Optionally set an expiration, I'd suggest doing it but keep in mind that when the expiry date is reached you'll need to create a new token and update your configuration.
 
 | Variable     | Description |
 | ------------ | ----------- |
@@ -160,6 +160,9 @@ Example `values.yaml`:
 ```yaml
 digitalocean:
   token: "<your token>"
+  # Or reference an existing Secret instead of passing the token:
+  # existingSecret: "do-dyndns-token"
+  # existingSecretKey: "token"
 
 dyndns:
   configyml: |-
@@ -184,5 +187,6 @@ helm upgrade --install my-do-dyndns do-dyndns/do-dyndns \
 ### Notes
 
 - The chart packages `dyndns.configyml` as the application's `config.yml`
+- The DigitalOcean token is stored in a Kubernetes Secret, either created by the chart from `digitalocean.token` or supplied via `digitalocean.existingSecret`
 - A new chart release is published when the chart `version` in `Chart.yaml` is bumped
 
