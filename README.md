@@ -71,7 +71,7 @@ Then run the following command (token in config.yml):
 ```bash
 docker run --name do-dyndns -d \
   -v $(pwd)/config.yml:/data/config.yml \
-  hellstromitltd/do-dyndns:v0.1.5
+  hellstromitltd/do-dyndns:v0.1.6
 ```
 
 Or this command if you prefer supplying the digitalocean token as an environment variable:
@@ -80,7 +80,7 @@ Or this command if you prefer supplying the digitalocean token as an environment
 docker run --name do-dyndns -d \
   -v $(pwd)/config.yml:/data/config.yml \
   --env DO_TOKEN=<your digitalocean token> \
-  hellstromitltd/do-dyndns:v0.1.5
+  hellstromitltd/do-dyndns:v0.1.6
 ```
 
 The docker logs for the container will inform you if a domain has changed.
